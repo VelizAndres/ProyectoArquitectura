@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Control Arduino con Johnny-Five</title>
+  <!-- Agrega la conexión con Socket.IO -->
+  <script src="/socket.io/socket.io.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <style>
+    /* Reglas CSS personalizadas */
+    .container-buttons{
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .custom-row {
+      height: 200px;
+      /* Ajusta la altura de las filas según tu preferencia */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .panel-distancia {
+      display: grid;
+      justify-content: center;
+    }
+
+    
+  </style>
+
+</head>
+
+<body>
+  <div>
+    <h1 class="text-center">Aplicación Control - Auto</h1>
+    <br><br>
+
+  </div>
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-3 border">
+        <div class="row">
+          <div class="col-md-12 border custom-row">
+            <button type="button" class="btn btn-primary btn-lg" id="btnLuces"  onclick="luces()">Encender Luces</button>
+          </div>
+        </div>
+      
+      </div>
+      <div class="col-md-6 border">
+        <div class="panel-distancia">
+          <h3 style="text-align: center;">Panel de Distancia</h3>
+          <p id="distancia">...</p>
+        </div>
+        <div class="container-buttons">
+          <button type="button" class="btn btn-primary btn-lg" onclick="medirDistancia()">Medir Distancia</button>
+          <button type="button" class="btn btn-primary btn-lg"onclick="detenerMedicion()">Detener Medición</button>
+        </div>
+      </div>
+      <div class="col-md-3 border">
+        <div class="row">
+          <div class="col-md-12 border custom-row">
+            <button type="button" class="btn btn-primary btn-lg" id="btnEmergencias" onclick="lucesEmergencia()">Encender Luces Emergencia</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12 border">
+            <button type="button" class="btn btn-primary btn-lg" onclick="bocina()">Bocina</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const socket = io();
+      let isActiveLuces = false;
+      let isActiveEmergencias = false;
+      function luces()
+      {
+        var boton = document.getElementById('btnLuces');
+        if (isActiveLuces) { 
+          socket.emit('apagar_luz');
+          boton.textContent = "Encender Luces";
+        }
+        else {
+          socket.emit('encender_luz'); 
+          boton.textContent = "Apagar Luces";
+        }
+        isActiveLuces = ! isActiveLuces
+      }
+
+      function lucesEmergencia()
+      {
+        var btnEmerg = document.getElementById('btnEmergencias');
+        if (isActiveEmergencias) { 
+          socket.emit('apagar_emergencia');
+          btnEmerg.textContent = "Encender Luces Emergencia";
+        }
+        else {
+          socket.emit('encender_emergencia');
+          btnEmerg.textContent = "Apagar Luces Emergencia";
+        }
+        isActiveEmergencias = ! isActiveEmergencias
+      }
+
+      function bocina() {
+        socket.emit('bocina');
+      }
+
+      function medirDistancia() {
+        socket.emit('medir_distancia');
+        socket.on('distancia', (data) => {
+          document.getElementById('distancia').innerText = `Distancia: ${data} cm`;
+        });
+      }
+
+      function detenerMedicion() {
+        socket.removeAllListeners('distancia');
+        document.getElementById('distancia').innerText = 'Distancia...';
+      }
+    </script>
+</body>
+
+</html>
